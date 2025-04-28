@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+   <meta name="csrf-token" content="{{ csrf_token() }}">
+
+  <title>Gestion des salles de conference</title>
+  <meta content="" name="description">
+  <meta content="" name="keywords">
+
+  <!-- Favicons -->
+  <!-- <link href="{{asset('img/favicon.png')}}" rel="icon">
+  <link href="{{asset('img/apple-touch-icon.png')}}" rel="apple-touch-icon"> -->
+  <link href="{{asset('img/logo_mshpcmu.png')}}" rel="icon">
+  <link href="{{asset('img/logo_mshpcmu.png')}}" rel="logo_mshpcmu">
+
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.gstatic.com" rel="preconnect">
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+
+  <!-- Vendor CSS Files -->
+  <link href="{{asset('vendor/bootstrap/css/bootstrap.min.css')}}" rel="stylesheet">
+  <link href="{{asset('vendor/bootstrap-icons/bootstrap-icons.css')}}" rel="stylesheet">
+  <link href="{{asset('vendor/boxicons/css/boxicons.min.css')}}" rel="stylesheet">
+  <link href="{{asset('vendor/quill/quill.snow.css')}}" rel="stylesheet">
+  <link href="{{asset('vendor/quill/quill.bubble.css')}}" rel="stylesheet">
+  <link href="{{asset('vendor/remixicon/remixicon.css')}}" rel="stylesheet">
+  <link href="{{asset('vendor/simple-datatables/style.css')}}" rel="stylesheet">
+  <link href="{{asset('css/fullcalendar@5.11.3/main.min.css')}}" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+  <link rel="stylesheet" href="{{asset('css/sweetalert2.min.css')}}">
+
+  <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+  <!-- Template Main CSS File -->
+  <link href="{{asset('css/style.css')}}" rel="stylesheet">
+
+  <link rel="stylesheet" href="{{asset('css/jquery.dataTables.min.css')}}">
+
+
+
+
+    <!-- Bootstrap Calendar CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-calendar/0.2.5/css/calendar.min.css">
+
+<link href="{{asset('css/app.css')}}" rel="stylesheet">
+
+
+<!-- jQuery (nécessaire pour Bootstrap Calendar) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Bootstrap Calendar JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-calendar/0.2.5/js/calendar.min.js"></script>
+
+
+
+  <!-- DataTables CSS & JS -->
+    <!-- <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script> -->
+
+    <script src="{{asset('js/jquery-3.6.0.min.js')}}"></script>
+    <script src="{{asset('js/jquery.dataTables.min.js')}}"></script>
+
+    <!-- Calendrier  -->
+<script src="{{asset('js/fullcalendar@5.11.3/main.min.js')}}"></script>
+
+
+
+
+
+
+  <!-- =======================================================
+  * Template Name: NiceAdmin
+  * Template URL: https://bootstrapmade.com/nice-admin-bootstrap-admin-html-template/
+  * Updated: Apr 20 2024 with Bootstrap v5.3.3
+  * Author: BootstrapMade.com
+  * License: https://bootstrapmade.com/license/
+  ======================================================== -->
+</head>
+
+<body>
+<script src="{{asset('js/app.js')}}"></script>
+
+  <!-- ======= Header ======= -->
+    @include('partials.header')
+  <!-- End Header -->
+
+  <!-- ======= Sidebar ======= -->
+    @include('partials.sidebar')
+  <!-- End Sidebar-->
+
+  <!-- #main -->
+        @yield('content')
+  <!-- End #main -->
+
+  <!-- ======= Footer ======= -->
+<!-- @include('partials.footer') -->
+  <!-- End Footer -->
+
+
+  <!-- Vendor JS Files -->
+  <script src="{{asset('vendor/apexcharts/apexcharts.min.js')}}"></script>
+  <script src="{{asset('vendor/bootstrap/js/bootstrap.bundle.min.js')}}"></script>
+  <script src="{{asset('vendor/chart.js/chart.umd.js')}}"></script>
+  <script src="{{asset('vendor/echarts/echarts.min.js')}}"></script>
+  <script src="{{asset('vendor/quill/quill.js')}}"></script>
+  <script src="{{asset('vendor/simple-datatables/simple-datatables.js')}}"></script>
+  <script src="{{asset('vendor/tinymce/tinymce.min.js')}}"></script>
+  <script src="{{asset('vendor/php-email-form/validate.js')}}"></script>
+
+  <!-- Template Main JS File -->
+  <script src="{{asset('js/main.js')}}"></script>
+  <script src="{{asset('js/sweetalert2@11.js')}}"></script>
+  <script src="{{asset('js/jquery-3.6.0.min.js')}}"></script>
+  <script src="{{asset('js/jquery.dataTables.min.js')}}"></script>
+  <script src="{{asset('js/fullcalendar@5.11.3/main.min.js')}}"></script>
+
+</body>
+
+</html>
