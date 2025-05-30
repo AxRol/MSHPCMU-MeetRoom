@@ -13,7 +13,7 @@ class ReservationPolicy
      */
     public function viewAny(User $user)
     {
-        return $user->hasRole('admin') || $user->hasRole('gestionnaire') || $user->hasRole('utilisateur');
+        return $user->hasRole('administrateur') || $user->hasRole('gestionnaire') || $user->hasRole('utilisateur');
     }
 
     /**
@@ -21,7 +21,7 @@ class ReservationPolicy
      */
     public function view(User $user, Reservation $reservation)
     {
-        return $user->hasRole('admin') || $user->hasRole('gestionnaire') || $user->hasRole('utilisateur');
+        return $user->hasRole('administrateur') || $user->hasRole('gestionnaire') || $user->hasRole('utilisateur');
     }
 
     /**
@@ -29,7 +29,7 @@ class ReservationPolicy
      */
     public function create(User $user)
     {
-        return $user->hasRole('admin') || $user->hasRole('gestionnaire') || $user->hasRole('utilisateur');
+        return $user->hasRole('administrateur') || $user->hasRole('gestionnaire') || $user->hasRole('utilisateur');
     }
 
     /**
@@ -37,7 +37,7 @@ class ReservationPolicy
      */
     public function update(User $user, Reservation $reservation)
     {
-        return $user->hasRole('admin') || $user->hasRole('gestionnaire') || $user->hasRole('utilisateur');
+        return $user->hasRole('administrateur') || $user->hasRole('gestionnaire') || $user->hasRole('utilisateur');
     }
 
     /**
@@ -45,7 +45,7 @@ class ReservationPolicy
      */
     public function delete(User $user, Reservation $reservation)
     {
-        return $user->hasRole('admin');
+        return $user->hasRole('administrateur');
     }
 
     /**
@@ -53,7 +53,7 @@ class ReservationPolicy
      */
     public function validate(User $user, Reservation $reservation)
     {
-        return $user->hasRole('admin') || $user->hasRole('gestionnaire') || $user->hasRole('utilisateur');
+        return $user->hasRole('administrateur') || $user->hasRole('gestionnaire'); //|| $user->hasRole('utilisateur');
     }
 
     /**
@@ -61,6 +61,6 @@ class ReservationPolicy
      */
     public function cancel(User $user, Reservation $reservation)
     {
-        return $user->hasRole('admin') || $user->hasRole('gestionnaire');
+        return $user->hasRole('administrateur') || $user->hasRole('gestionnaire');
     }
 }

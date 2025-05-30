@@ -60,7 +60,7 @@
       <section class="section error-404 min-vh-100 d-flex flex-column align-items-center justify-content-center">
         <h1>403</h1>
         <h2>Accès non autorisé.</h2>
-        <a class="btn" href="{{route('dashboard')}}">Retour au tableau de bord</a>
+        <!-- <a class="btn" href="{{route('dashboard')}}">Retour au tableau de bord</a> -->
         <div class="credits">
           <!-- All the links in the footer should remain intact. -->
           <!-- You can delete the links only if you purchased the pro version. -->

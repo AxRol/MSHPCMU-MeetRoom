@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Salle;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 //use Spatie\Permission\Models\Permission;
@@ -31,9 +32,11 @@ class UserController extends Controller
     {
         // Récupérer tous les rôles
         $roles = Role::all();
-
+        $roles = Role::all();
+        $salles = Salle::all(); // Récupérer toutes les salles
         // Passer les rôles à la vue
-        return view('users.create', compact('roles'));
+        return view('users.create', compact('roles', 'salles'));
+
     }
 
     /**
@@ -44,21 +47,32 @@ class UserController extends Controller
        $request->validate([
         'name' => 'required|string|max:255',
         'email' => 'required|string|email|max:255|unique:users',
-        'password' => 'required|string|min:8|confirmed',
-        'role' => 'required|string|exists:roles,name', // Vérifie que le rôle existe
-        ]);
+        'password' => 'required|string|min:4|confirmed',
+        'role' => 'required|string|exists:roles,name',
+        'salles' => 'nullable|array', // Valider les salles
+        'salles.*' => 'exists:salles,id', // Vérifier que chaque salle existe
+            ]);
 
-        // Création de l'utilisateur
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => bcrypt($request->password),
-        ]);
+            // Création de l'utilisateur
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => bcrypt($request->password),
+            ]);
 
-        // Attribuer le rôle sélectionné
-        $user->assignRole($request->role);
+            // Attribuer le rôle sélectionné
+            $user->assignRole($request->role);
 
-            // Redirection vers la liste des utilisateurs avec un message de succès
+            // Si le rôle est "gestionnaire", attribuer les salles
+            if ($request->role === 'administrateur') {
+            $allSalleIds = Salle::pluck('id')->toArray();
+            $user->salles()->sync($allSalleIds); // Associer toutes les salles
+            } elseif ($request->role === 'gestionnaire' && $request->has('salles')) {
+                $user->salles()->sync($request->salles); // Associer les salles
+            } else {
+                $user->salles()->detach(); // Détacher toutes les salles pour les autres rôles
+            }
+
             $utilisateur = $request->name;
             return redirect()->route('users.index')->with('success', "Utilisateur  $utilisateur créé avec succès.");
     }
@@ -76,9 +90,12 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
+        $user = User::findOrFail($user->id);
         $roles = Role::all();
-      //  $permissions = Permission::all();
-        return view('users.edit', compact('user', 'roles'));
+        $salles = Salle::all(); // Récupérer toutes les salles
+
+    return view('users.edit', compact('user', 'roles', 'salles'));
+
     }
 
     /**
@@ -90,8 +107,10 @@ class UserController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'password' => 'nullable|string|min:8|confirmed',
+            'password' => 'nullable|string|min:4|confirmed',
             'role' => 'required|string|exists:roles,name', // Vérifie que le rôle existe
+            'salles' => 'nullable|array',
+            'salles.*' => 'exists:salles,id',
         ]);
 
         // Mise à jour de l'utilisateur
@@ -103,8 +122,18 @@ class UserController extends Controller
 
         // Synchroniser le rôle
         if ($request->role) {
-            $user->syncRoles([$request->role]); // Synchronise le rôle sélectionné
+            $user->syncRoles([$request->role]);
         }
+
+        // Gestion des salles selon le rôle
+    if ($request->role === 'administrateur') {
+        $allSalleIds = Salle::pluck('id')->toArray();
+        $user->salles()->sync($allSalleIds);
+    } elseif ($request->role === 'gestionnaire') {
+        $user->salles()->sync($request->input('salles', []));
+    } else {
+        $user->salles()->detach();
+    }
 
         // Redirection vers la liste des utilisateurs avec un message de succès
         $utilisateur = $request->name;

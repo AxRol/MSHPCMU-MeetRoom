@@ -13,7 +13,7 @@ class SallePolicy
      */
     public function view(User $user, Salle $salle)
     {
-        return $user->hasRole('admin') || $user->hasRole('gestionnaire');
+        return $user->hasRole('administrateur') || $user->hasRole('gestionnaire');
     }
 
     /**
@@ -21,7 +21,7 @@ class SallePolicy
      */
     public function create(User $user)
     {
-        return $user->hasRole('admin') || $user->hasRole('gestionnaire');
+        return $user->hasRole('administrateur') || $user->hasRole('gestionnaire');
     }
 
     /**
@@ -29,7 +29,7 @@ class SallePolicy
      */
     public function update(User $user, Salle $salle)
     {
-        return $user->hasRole('admin') || $user->hasRole('gestionnaire');
+        return $user->hasRole('administrateur') || $user->hasRole('gestionnaire');
     }
 
     /**
@@ -37,6 +37,6 @@ class SallePolicy
      */
     public function delete(User $user, Salle $salle)
     {
-        return $user->hasRole('admin');
+        return $user->hasRole('administrateur');
     }
 }

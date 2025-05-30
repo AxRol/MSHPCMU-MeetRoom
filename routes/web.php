@@ -13,19 +13,20 @@ Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
 
 
-// Routes protégées par le middleware 'auth' et 'role:admin' (accès total)
-Route::middleware(['auth', 'role:admin'])->group(function () {
+// Routes protégées par le middleware 'auth' et 'role:administrateur' (accès total)
+Route::middleware(['auth', 'role:administrateur'])->group(function () {
     Route::resource('users', UserController::class);
 });
 
-Route::middleware(['auth', 'role:gestionnaire,admin,utilisateur'])->group(function () {
+Route::middleware(['auth', 'role:gestionnaire,administrateur,utilisateur'])->group(function () {
     Route::resource('reservations', ReservationController::class);
     Route::post('/reservations/{id}/valider', [ReservationController::class, 'valider'])->name('reservations.valider');
     Route::post('/reservations/{id}/annuler', [ReservationController::class, 'annuler'])->name('reservations.annuler');
 
+
 });
 
-Route::middleware(['auth', 'role:admin,gestionnaire'])->group(function () {
+Route::middleware(['auth', 'role:administrateur,gestionnaire'])->group(function () {
     Route::resource('salles', SalleController::class);
     Route::resource('directions', DirectionController::class);
 });

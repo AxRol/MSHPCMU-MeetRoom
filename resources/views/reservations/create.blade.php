@@ -61,6 +61,20 @@
                             @enderror
                         </div>
 
+
+                         <!-- Champ pour la priorité -->
+                        @if (Auth::check() && in_array(Auth::user()->getRoleNames()->first(), ['administrateur', 'gestionnaire']))
+                        <div class="mb-3">
+                            <label for="priority" class="form-label">Priorité</label>
+                            <input type="hidden" name="priority" value="0"> <!-- Important pour quand la case n'est pas cochée -->
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="priority" id="priority" value="1" >
+                                <label class="form-check-label" for="priority">Réservation prioritaire </label>
+                            </div>
+                            <small class="text-muted">Les réservations prioritaires annuleront automatiquement les autres réservations en conflit</small>
+                        </div>
+                        @endif
+
                         <!-- Champ pour la date et heure de début -->
                         <div class="mb-3">
                             <label for="start_time" class="form-label">Date et heure de début</label>

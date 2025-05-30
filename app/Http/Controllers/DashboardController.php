@@ -13,171 +13,219 @@ use Illuminate\Support\Collection;
 class DashboardController extends Controller
 {
     public function index()
-{
-    $userId = Auth::id();
+    {
+        $user = Auth::user(); // Récupérer l'utilisateur connecté
+        $userId = Auth::id();
+        $now = Carbon::now();
+       // $now = now();
 
-    $today = Carbon::today();
-    $totalUsers = User::count();
-    $totalSalles = Salle::count();
-    $totalReservations = Reservation::count();
-    $totalReservationsUser = Reservation::where('user_id', $userId)->count();
-    $reservationsEnAttente = Reservation::where('status', 'en attente')->count();
-    $reservationsValidees = Reservation::where('status', 'validé')->count();
-    $reservationsAnnulees = Reservation::where('status', 'annulé')->count();
+        // Initialisation des variables
+        $reservationsStats = [];
+        $reservationsDuJour = 0;
+        $reservationsEnCours = 0;
+        $totalReservations = 0;
+        $tauxOccupation = 0;
+        $reservationsParSalle = [];
+        $reservationsParDirection = [];
+        $salles = [];
+       // $reservationsForCalendar = [];
+       $reservationsForCalendar = $this->formatReservationsForCalendar(Reservation::where('status', '!=', 'archivé')->get());
+        $reservations = Reservation::all();
+        $labels_reserv_salle = [];
+        $data_reserv_salle = [];
+        $data_pourcentage_salle = [];
+        $topDirections = Reservation::select('directions.nom as direction')
+            ->join('directions', 'reservations.direction_id', '=', 'directions.id')
+            ->selectRaw('count(*) as total')
+            ->groupBy('directions.nom')
+            ->orderBy('total', 'desc')
+            ->limit(5)
+            ->get();
 
-    $totalReservationsDuJourUser = Reservation::where('user_id', $userId)
-        ->where('start_time', $today)
-        ->count();
-    $totalReservationsDuJour = Reservation::whereDate('start_time', $today)->count();
-
-    // Taux d'utilisation des salles
-    $reservationsParSalle = Salle::withCount('reservations')->get();
-    // Préparer les données pour le graphique
-    $labels_reserv_salle = $reservationsParSalle->pluck('nom'); // Noms des salles
-    $data_reserv_salle = $reservationsParSalle->pluck('reservations_count'); // Nombre de réservations
-    $data_pourcentage_salle = $reservationsParSalle->map(function ($salle) use ($totalReservations) {
-        return ($salle->reservations_count / $totalReservations) * 100; // Pourcentage
-    });
-
-    $allReservationUser = Reservation::where('user_id', $userId)
-        ->orderBy('start_time', 'desc') // Optionnel : trier par date de début
-        ->get();
-
-    $currentReservationsUser = Reservation::where('user_id', $userId)
-        ->where('start_time', '<=', now())
-        ->where('end_time', '>=', now())
-        ->count();
-
-    $reservationsByDayUser = Reservation::where('user_id', $userId)
-        ->whereBetween('start_time', [
-            Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])
-        ->with('salle') // Charger la relation "salle"
-        ->get()
-        ->groupBy(function ($reservation) {
-            return Carbon::parse($reservation->start_time)->format('l'); // Grouper par jour de la semaine
-        })
-        ->map(function ($group) {
-            return $group->count(); // Compter le nombre de réservations par jour
-        });
-
-    $currentReservations = Reservation::where('start_time', '<=', now())
-        ->where('end_time', '>=', now())
-        ->count();
-
-    // Nombre de salles en cours d'utilisation
-    $sallesEnCoursUtilisation = Reservation::where('start_time', '<=', now())
-        ->where('end_time', '>=', now())
-        ->distinct('salle_id') // Récupérer les salles uniques
-        ->count('salle_id'); // Compter le nombre de salles
-
-    $latestReservations = Reservation::whereBetween('start_time', [
-        Carbon::now()->startOfWeek(),
-        Carbon::now()->endOfWeek()
-    ])->orderBy('start_time', 'desc')->paginate(10);
-
-    $topDirections = Reservation::select('directions.nom as direction')
-        ->join('directions', 'reservations.direction_id', '=', 'directions.id')
-        ->selectRaw('count(*) as total')
-        ->groupBy('directions.nom')
-        ->orderBy('total', 'desc')
-        ->limit(5)
-        ->get();
-    $totalReservationsByDirection = $topDirections->sum('total'); // Total des réservations pour toutes les directions
-    $topDirections = $topDirections->map(function ($direction) use ($totalReservationsByDirection) {
-        $direction->percentage = ($direction->total / $totalReservationsByDirection) * 100; // Calcul du pourcentage
-        return $direction;
-    });
-
-    $reservationsByDay = Reservation::whereBetween('start_time', [
-        Carbon::now()->startOfWeek(),
-        Carbon::now()->endOfWeek()
-    ])->with('salle')
-        ->get()
-        ->groupBy(function ($reservation) {
-            return Carbon::parse($reservation->start_time)->format('l'); // Grouper par jour de la semaine
-        })
-        ->map(function ($group) {
-            return $group->count(); // Compter le nombre de réservations par jour
-        });
-
-    $labels = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
-    $data = collect($labels)->map(function ($day) use ($reservationsByDay) {
-        return $reservationsByDay->get($day, 0); // Récupérer le nombre de réservations pour chaque jour
-    });
-
-    $reservations_agenda = Reservation::all();
-    $reservationsForCalendar = $this->formatReservationsForCalendar($reservations_agenda);
-
-  ////  $salles = Salle::all(); // Assurez-vous d'avoir le modèle Salle et le use en haut
-    //$today = now()->format('Y-m-d');
-
-    //// Charger toutes les salles avec leurs réservations en cours
-    //$salles = Salle::with(['reservations' => function($query) {
-      //  $query->where('start_time', '<=', now())
-        //      ->where('end_time', '>=', now())
-          //    ->where('status', 'validé');
-   // }])->get();
-
-    //// Séparer les salles disponibles et occupées
-    //$sallesDisponibles = $salles->filter(function($salle) {
-    //    return $salle->reservations->isEmpty();
-    //});
-    //
-    //$sallesOccupees = $salles->filter(function($salle) {
-    //    return $salle->reservations->isNotEmpty();
-    //});
-
-    $now = now();
-
-    $salles = Salle::with(['reservations' => function($query) use ($now) {
-        $query->where('start_time', '<=', $now)
-              ->where('end_time', '>=', $now)
-              ->where('status', 'validé')
-              ->with('user'); // Charger aussi l'utilisateur
-    }])->orderBy('nom')->get();
-
-    // Préparer les données de disponibilité
-    $salles->each(function($salle) {
-        $salle->estDisponible = $salle->reservations->isEmpty();
-        $salle->reservationActuelle = $salle->reservations->first();
-    });
+        $now = Carbon::now();
+        Reservation::where('status', 'validé')
+            ->where('end_time', '<', $now)
+            ->update(['status' => 'terminé']);
 
 
-    return view('dashboard.index', compact(
-        'totalUsers',
-        'totalSalles',
-        'totalReservations',
-        'totalReservationsUser',
-        'totalReservationsDuJourUser',
-        'allReservationUser',
-        'currentReservationsUser',
-        'reservationsByDayUser',
-        'currentReservations',
-        'sallesEnCoursUtilisation',
-        'latestReservations',
-        'topDirections',
-        'totalReservationsByDirection',
-        'reservationsByDay',
-        'labels',
-        'data',
-        'labels_reserv_salle',
-        'data_reserv_salle',
-        'data_pourcentage_salle',
-        'totalReservationsDuJour',
-        'reservationsForCalendar',
-        'reservationsEnAttente',
-        'reservationsValidees',
-        'reservationsAnnulees',
-        'salles',
-    //    'sallesDisponibles',
-    //    'sallesOccupees'
-    //    'reservationsDuJour'
-        'now'
-    ));
-}
+
+
+        // Gestionnaire
+        if ($user && $user->hasRole('gestionnaire')) {
+            $sallesIds = $user->salles->pluck('id');
+
+            // Statistiques des réservations
+            $reservationsStats = Reservation::whereIn('salle_id', $sallesIds)
+                ->selectRaw("
+                    SUM(CASE WHEN status = 'validé' THEN 1 ELSE 0 END) as validees,
+                    SUM(CASE WHEN status = 'annulé' THEN 1 ELSE 0 END) as annulees,
+                    SUM(CASE WHEN status = 'en attente' THEN 1 ELSE 0 END) as en_attente,
+                    SUM(CASE WHEN status = 'terminé' THEN 1 ELSE 0 END) as terminees,
+                    SUM(CASE WHEN status = 'archivé' THEN 1 ELSE 0 END) as archivees
+                ")
+                ->first();
+
+            $reservationsDuJour = Reservation::whereIn('salle_id', $sallesIds)
+                ->whereDate('start_time', Carbon::today())
+                ->count();
+
+            $reservationsEnCours = Reservation::whereIn('salle_id', $sallesIds)
+                ->where('start_time', '<=', $now)
+                ->where('end_time', '>=', $now)
+                ->count();
+
+            $totalReservations = Reservation::whereIn('salle_id', $sallesIds)->count();
+
+            $tauxOccupation = $totalReservations > 0
+                ? ($reservationsEnCours / $totalReservations) * 100
+                : 0;
+
+            $reservationsParSalle = Salle::whereIn('id', $sallesIds)
+                ->withCount('reservations')
+                ->get();
+
+            $reservationsParDirection = Reservation::whereIn('salle_id', $sallesIds)
+                ->join('directions', 'reservations.direction_id', '=', 'directions.id')
+                ->select('directions.nom as direction')
+                ->selectRaw('count(*) as total')
+                ->groupBy('directions.nom')
+                ->orderBy('total', 'desc')
+                ->get();
+
+            $salles = Salle::whereIn('id', $sallesIds)
+                ->with(['reservations' => function ($query) use ($now) {
+                    $query->where('start_time', '<=', $now)
+                        ->where('end_time', '>=', $now)
+                        ->where('status', 'validé');
+                }])
+                ->get();
+
+            $salles->each(function ($salle) {
+                $salle->estDisponible = $salle->reservations->isEmpty();
+                $salle->reservationActuelle = $salle->reservations->first();
+            });
+
+            $reservationsForCalendar = $this->formatReservationsForCalendar(
+                Reservation::whereIn('salle_id', $sallesIds)
+                ->where('status', '!=', 'archivé')
+                ->get()
+            );
+            // Taux d'utilisation des salles
+            $reservationsParSalle = Salle::whereIn('id', $sallesIds)->withCount('reservations')->get();
+            // Préparer les données pour le graphique
+            $labels_reserv_salle = $reservationsParSalle->pluck('nom'); // Noms des salles
+            $data_reserv_salle = $reservationsParSalle->pluck('reservations_count'); // Nombre de réservations
+            $data_pourcentage_salle = $reservationsParSalle->map(function ($salle) use ($totalReservations) {
+                return ($salle->reservations_count / $totalReservations) * 100; // Pourcentage
+            });
+        }
+
+        // Administrateur
+        if ($user && $user->hasRole('administrateur')) {
+            $reservationsStats = Reservation::selectRaw("
+                SUM(CASE WHEN status = 'validé' THEN 1 ELSE 0 END) as validees,
+                SUM(CASE WHEN status = 'annulé' THEN 1 ELSE 0 END) as annulees,
+                SUM(CASE WHEN status = 'en attente' THEN 1 ELSE 0 END) as en_attente,
+                SUM(CASE WHEN status = 'terminé' THEN 1 ELSE 0 END) as terminees,
+                SUM(CASE WHEN status = 'archivé' THEN 1 ELSE 0 END) as archivees
+            ")
+            ->first();
+
+            $reservationsDuJour = Reservation::whereDate('start_time', Carbon::today())->count();
+
+            $reservationsEnCours = Reservation::where('start_time', '<=', $now)
+                ->where('end_time', '>=', $now)
+                ->count();
+
+            $totalReservations = Reservation::count();
+
+            $tauxOccupation = $totalReservations > 0
+                ? ($reservationsEnCours / $totalReservations) * 100
+                : 0;
+
+            $reservationsParSalle = Salle::withCount('reservations')->get();
+
+            $reservationsParDirection = Reservation::join('directions', 'reservations.direction_id', '=', 'directions.id')
+                ->select('directions.nom as direction')
+                ->selectRaw('count(*) as total')
+                ->groupBy('directions.nom')
+                ->orderBy('total', 'desc')
+                ->get();
+
+            $salles = Salle::with(['reservations' => function ($query) use ($now) {
+                $query->where('start_time', '<=', $now)
+                    ->where('end_time', '>=', $now)
+                    ->where('status', 'validé');
+            }])
+            ->get();
+
+            $salles->each(function ($salle) {
+                $salle->estDisponible = $salle->reservations->isEmpty();
+                $salle->reservationActuelle = $salle->reservations->first();
+            });
+
+            $reservationsForCalendar = $this->formatReservationsForCalendar(Reservation::all());
+
+            // Taux d'utilisation des salles
+            $reservationsParSalle = Salle::withCount('reservations')->get();
+            // Préparer les données pour le graphique
+            $labels_reserv_salle = $reservationsParSalle->pluck('nom'); // Noms des salles
+            $data_reserv_salle = $reservationsParSalle->pluck('reservations_count'); // Nombre de réservations
+            $data_pourcentage_salle = $reservationsParSalle->map(function ($salle) use ($totalReservations) {
+                return ($salle->reservations_count / $totalReservations) * 100; // Pourcentage
+            });
+        }
+
+        // Utilisateur
+        if ($user && $user->hasRole('utilisateur')) {
+            $reservationsStats = Reservation::where('user_id', $userId)
+                ->selectRaw("
+                    SUM(CASE WHEN status = 'validé' THEN 1 ELSE 0 END) as validees,
+                    SUM(CASE WHEN status = 'annulé' THEN 1 ELSE 0 END) as annulees,
+                    SUM(CASE WHEN status = 'en attente' THEN 1 ELSE 0 END) as en_attente,
+                    SUM(CASE WHEN status = 'terminé' THEN 1 ELSE 0 END) as terminees,
+                    SUM(CASE WHEN status = 'archivé' THEN 1 ELSE 0 END) as archivees
+                ")
+                ->first();
+
+            $reservationsDuJour = Reservation::where('user_id', $userId)
+                ->whereDate('start_time', Carbon::today())
+                ->count();
+
+            $reservationsEnCours = Reservation::where('user_id', $userId)
+                ->where('start_time', '<=', $now)
+                ->where('end_time', '>=', $now)
+                ->count();
+
+            $totalReservations = Reservation::where('user_id', $userId)->count();
+
+            $reservationsForCalendar = $this->formatReservationsForCalendar(
+                Reservation::where('user_id', $userId)
+                ->where('status', '!=', 'archivé')
+                ->get()
+            );
+        }
+
+        return view('dashboard.index', compact(
+            'reservationsStats',
+            'reservationsDuJour',
+            'reservationsEnCours',
+            'totalReservations',
+            'tauxOccupation',
+            'reservationsParSalle',
+            'reservationsParDirection',
+            'salles',
+            'reservationsForCalendar',
+            'labels_reserv_salle',
+            'data_reserv_salle', // Nombre de réservations
+            'data_pourcentage_salle',
+            'topDirections'
+        ));
+    }
 
     private function formatReservationsForCalendar($reservations)
     {
+        $userId = Auth::id();
         return $reservations->map(function ($reservation) {
             return [
                 'id' => $reservation->id,
@@ -185,7 +233,14 @@ class DashboardController extends Controller
                 //'title' => $reservation->salle->nom . ' - ' . $reservation->direction->nom, // Titre de l'événement
                 'start' => $reservation->start_time, // Date et heure de début
                 'end' => $reservation->end_time, // Date et heure de fin
-                'backgroundColor' => $this->getEventColor($reservation->status), // Couleur en fonction du statut
+                'salle' => $reservation->salle->nom ?? 'Non spécifié',
+                'direction' => $reservation->direction->nom ?? 'Non spécifié',
+                'motif' => $reservation->motif ?? 'Non spécifié',
+                'status' => $reservation->status ?? 'Non spécifié',
+                'priority' => $reservation->priority ? 'Oui' : 'Non',
+                'creator_id' => $reservation->user_id ?? null,
+                'user_id' => $userId ?? null,
+               //  'backgroundColor' => $this->getEventColor($reservation->status), // Couleur en fonction du statut
                // 'borderColor' => '#000', // Couleur de la bordure
                 'textColor' => '#000000', // Couleur du texte
             ];
@@ -210,5 +265,31 @@ class DashboardController extends Controller
             default:
                 return '#bff4f7'; // Bleu par défaut
         }
+    }
+
+    public function getReservationsStatsForGestionnaire()
+    {
+        $user = Auth::user();
+      // $userId = Auth::id();
+
+        // Vérifier si l'utilisateur est un gestionnaire
+        if (Auth::check() && Auth::user()->hasRole('gestionnaire')) {
+            // Récupérer les salles assignées au gestionnaire
+            $sallesIds = $user->salles->pluck('id');
+
+            // Calculer les statistiques des réservations pour ces salles
+            $stats = Reservation::whereIn('salle_id', $sallesIds)
+                ->selectRaw("
+                    SUM(CASE WHEN status = 'validé' THEN 1 ELSE 0 END) as validé,
+                    SUM(CASE WHEN status = 'annulé' THEN 1 ELSE 0 END) as annulé,
+                    SUM(CASE WHEN status = 'en attente' THEN 1 ELSE 0 END) as en_attente,
+                    SUM(CASE WHEN status = 'terminé' THEN 1 ELSE 0 END) as termine
+                ")
+                ->first();
+
+            return $stats;
+        }
+
+        return null; // Si l'utilisateur n'est pas un gestionnaire
     }
 }

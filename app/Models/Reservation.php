@@ -19,6 +19,12 @@ class Reservation extends Model
     'nom_direction', // Ajouté
     'motif', // Ajouté
     'status',
+    'priority',
+];
+
+    protected $casts = [
+    'start_time' => 'datetime',
+    'end_time' => 'datetime',
 ];
 
     public function salle()

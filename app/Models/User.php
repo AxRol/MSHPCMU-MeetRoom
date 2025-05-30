@@ -14,6 +14,7 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
+
     /**
      * The attributes that are mass assignable.
      *
@@ -51,11 +52,16 @@ class User extends Authenticatable
     }
 
     public function hasRole($role)
-{
-   // return $this->roles()->where('name', $role)->exists();
-    $userRoles = $this->roles->pluck('name')->toArray(); // Convertit les rôles en tableau
+    {
+    // return $this->roles()->where('name', $role)->exists();
+        $userRoles = $this->roles->pluck('name')->toArray(); // Convertit les rôles en tableau
 
-    // Vérifie si le rôle demandé est dans les rôles de l'utilisateur
-    return in_array($role, $userRoles);
-}
+        // Vérifie si le rôle demandé est dans les rôles de l'utilisateur
+        return in_array($role, $userRoles);
+    }
+
+    public function salles()
+    {
+        return $this->belongsToMany(Salle::class, 'salle_user'); // Table pivot : salle_user
+    }
 }

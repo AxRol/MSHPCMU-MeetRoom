@@ -62,6 +62,18 @@
                         </select>
                         @error('role') <div class="text-danger mt-2">{{ $message }}</div> @enderror
                     </div>
+                    <div class="col-xxl-6 col-md-6" id="salles-container">
+                        <label for="salles">Salles attribuées au gestionnaire</label>
+                        <select name="salles[]" id="salles" class="form-control" multiple>
+                            @foreach ($salles as $salle)
+                                <option value="{{ $salle->id }}"
+                                    {{ in_array($salle->id, $user->salles->pluck('id')->toArray()) ? 'selected' : '' }}>
+                                    {{ $salle->nom }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('salles') <div class="text-danger mt-2">{{ $message }}</div> @enderror
+                    </div>
                 </div>
 
                 <!-- Bouton de soumission -->
@@ -79,5 +91,28 @@
     </section>
 
 </main>
+
+<!-- Masquer/afficher les salles a assigner -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const roleSelect = document.getElementById('roles');
+        const sallesContainer = document.getElementById('salles-container');
+
+        // Fonction pour afficher ou masquer la div des salles
+        function toggleSallesContainer() {
+            if (roleSelect.value === 'gestionnaire') {
+                sallesContainer.style.display = 'block';
+            } else {
+                sallesContainer.style.display = 'none';
+            }
+        }
+
+        // Appeler la fonction au chargement initial
+        toggleSallesContainer();
+
+        // Ajouter un écouteur d'événement pour détecter les changements
+        roleSelect.addEventListener('change', toggleSallesContainer);
+    });
+</script>
 
 @endsection

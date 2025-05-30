@@ -1,3 +1,4 @@
+
 @extends('master')
 
 @section('content')
@@ -6,40 +7,140 @@
     <style>
         #calendar {
             max-width: 100%;
+            width: 100%;
             margin: 0 auto;
+            min-height: 400px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(44, 62, 80, 0.08);
+            padding: 20px 10px;
         }
 
-        @media (max-width: 768px) {
-            .fc-toolbar {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .fc-toolbar .fc-left,
-            .fc-toolbar .fc-center,
-            .fc-toolbar .fc-right {
-                margin-bottom: 10px;
-            }
+        .fc-event {
+            border: none !important;
+            border-radius: 8px !important;
+            box-shadow: 0 2px 8px rgba(44, 62, 80, 0.08);
+            font-weight: 500;
+            transition: transform 0.1s, box-shadow 0.1s;
+            cursor: pointer;
+        }
+        .fc-event:hover {
+            transform: scale(1.03);
+            box-shadow: 0 4px 16px rgba(44, 62, 80, 0.15);
+            z-index: 10;
+        }
+        .fc-day-today {
+            background: #e3f2fd !important;
         }
 
-        /* Style pour la liste des salles disponibles */
-        .salle-disponible {
+        .modal.fade .modal-dialog {
+            transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+            transform: translateY(-30px) scale(0.98);
+        }
+        .modal.fade.show .modal-dialog {
+            transform: translateY(0) scale(1);
+        }
+
+        .modal-header {
+            background: linear-gradient(90deg, #3640f5 0%,rgb(89, 139, 247) 100%);
+            color: #fff;
+            border-top-left-radius: .5rem;
+            border-top-right-radius: .5rem;
+        }
+        .modal-title strong {
+            color: #ffe082;
+        }
+        .modal.fade .modal-dialog {
+            transition: transform 0.3s cubic-bezier(.4,0,.2,1), opacity 0.3s;
+            transform: translateY(-30px) scale(0.98);
+            opacity: 0;
+        }
+        .modal.fade.show .modal-dialog {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+        }
+
+        .fc-day-sat, .fc-day-sun {
+            background: #f8fafc !important;
+        }
+
+        /* Taille de police par défaut pour l'agenda */
+    .fc {
+        font-size: 1rem;
+    }
+
+    /* Adapter la taille de police sur tablette */
+    @media (max-width: 992px) {
+        .fc {
+            font-size: 0.95rem;
+        }
+        .fc-toolbar-title {
+            font-size: 1.1rem;
+        }
+    }
+
+    /* Adapter la taille de police sur mobile */
+    @media (max-width: 768px) {
+        .fc {
+            font-size: 0.85rem;
+        }
+        .fc-toolbar-title {
+            font-size: 1rem;
+        }
+        .fc .fc-daygrid-day-frame {
+            min-height: 60px;
+        }
+    }
+
+    /* Adapter la taille de police sur très petit écran */
+    @media (max-width: 480px) {
+        .fc {
+            font-size: 0.75rem;
+        }
+        .fc-toolbar-title {
+            font-size: 0.50rem;
+        }
+    }
+
+
+        .disponible {
             background-color: #e8f5e9;
-            border-left: 4px solid #2e7d32;
+            border-left: 4px solid #2e7d32; /* vert */
             padding: 10px;
             margin-bottom: 5px;
             border-radius: 4px;
         }
-        .salle-indisponible {
+        .indisponible {
             background-color: #ffebee;
-            border-left: 4px solid #c62828;
+            border-left: 4px solid #c62828; /* rouge */
             padding: 10px;
             margin-bottom: 5px;
             border-radius: 4px;
         }
+        .validee {
+            background-color: #e3f2fd;
+            border-left: 4px solid #3640f5; /* bleu */
+            padding: 10px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+        }
+        .attente {
+            background-color: #fffde7;
+            border-left: 4px solid #ffb300; /* orange */
+            padding: 10px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+        }
+
+        .autre {
+        background-color: #f3f6f9;           /* gris très clair */
+        border-left: 4px solid #90a4ae;      /* bleu-gris */
+        padding: 10px;
+        margin-bottom: 5px;
+        border-radius: 4px;
+    }
     </style>
 
-    <!-- En-tête -->
     <div class="pagetitle">
         <h1>Tableau de bord</h1>
         <nav>
@@ -48,379 +149,226 @@
                 <li class="breadcrumb-item active">Tableau de bord</li>
             </ol>
         </nav>
-    </div><!-- Fin de l'en-tête -->
+    </div>
 
-    <!-- Section principale -->
-    <section class="section dashboard">
-        <div class="row">
-            <!-- Réservations en cours -->
-            <div class="col-xxl-4 col-md-6">
-                <div class="card info-card customers-card">
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            @if(Auth::check() && Auth::user()->getRoleNames()->first() === 'utilisateur')
-                                Mes réservations
-                            @else
-                                Réservations
-                            @endif
-                            <span>| En cours</span>
-                        </h5>
-                        <div class="d-flex align-items-center">
-                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                <i class="bi bi-calendar4-week"></i>
-                            </div>
-                            <div class="ps-3">
-                                <h6>
-                                    @if(Auth::check() && Auth::user()->getRoleNames()->first() === 'utilisateur')
-                                        {{ $currentReservationsUser }}
-                                    @else
-                                        {{ $currentReservations }}
-                                    @endif
-                                </h6>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Réservations du jour -->
-            <div class="col-xxl-4 col-md-6">
-                <div class="card info-card revenue-card">
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            @if(Auth::check() && Auth::user()->getRoleNames()->first() === 'utilisateur')
-                                Mes réservations
-                            @else
-                                Réservations
-                            @endif
-                            <span>| Du jour</span>
-                        </h5>
-                        <div class="d-flex align-items-center">
-                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                <i class="bi bi-calendar4-week"></i>
-                            </div>
-                            <div class="ps-3">
-                                <h6>
-                                    @if(Auth::check() && Auth::user()->getRoleNames()->first() === 'utilisateur')
-                                        {{ $totalReservationsDuJourUser }}
-                                    @else
-                                        {{ $totalReservationsDuJour }}
-                                    @endif
-                                </h6>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Total des réservations -->
-            <div class="col-xxl-4 col-md-6">
-                <div class="card info-card sales-card">
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            @if(Auth::check() && Auth::user()->getRoleNames()->first() === 'utilisateur')
-                                Mes réservations
-                            @else
-                                Réservations
-                            @endif
-                            <span>| Total</span>
-                        </h5>
-                        <div class="d-flex align-items-center">
-                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                <i class="bi bi-calendar4-week"></i>
-                            </div>
-                            <div class="ps-3">
-                                <h6>
-                                    @if(Auth::check() && Auth::user()->getRoleNames()->first() === 'utilisateur')
-                                        {{ $totalReservationsUser }}
-                                    @else
-                                        {{ $totalReservations }}
-                                    @endif
-                                </h6>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        @if (Auth::check() && in_array(Auth::user()->getRoleNames()->first(), ['admin', 'gestionnaire']))
-            <!-- Statistiques secondaires (uniquement pour admin et gestionnaire) -->
-            <div class="row">
-                <!-- Réservations en attente -->
-                <div class="col-xxl-4 col-md-6">
-                    <div class="card info-card sales-card">
-                        <div class="card-body">
-                            <h5 class="card-title">Réservations <span>| En attente</span></h5>
-                            <div class="d-flex align-items-center">
-                                <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                    <i class="bi bi-hourglass-split" style="color: orange;"></i>
-                                </div>
-                                <div class="ps-3">
-                                    <h6>{{ $reservationsEnAttente }}</h6>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Réservations validées -->
-                <div class="col-xxl-4 col-md-6">
-                    <div class="card info-card sales-card">
-                        <div class="card-body">
-                            <h5 class="card-title">Réservations <span>| Validées</span></h5>
-                            <div class="d-flex align-items-center">
-                                <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                    <i class="bi bi-check-circle" style="color: #2eca6a;"></i>
-                                </div>
-                                <div class="ps-3">
-                                    <h6>{{ $reservationsValidees }}</h6>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Réservations annulées -->
-                <div class="col-xxl-4 col-md-6">
-                    <div class="card info-card sales-card">
-                        <div class="card-body">
-                            <h5 class="card-title">Réservations <span>| Annulées</span></h5>
-                            <div class="d-flex align-items-center">
-                                <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                    <i class="bi bi-x-circle" style="color: red;"></i>
-                                </div>
-                                <div class="ps-3">
-                                    <h6>{{ $reservationsAnnulees }}</h6>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Graphiques et données supplémentaires (uniquement pour admin et gestionnaire) -->
-            <div class="row">
-                <!-- Graphique : Taux d'occupation des salles -->
-                <div class="col-lg-8">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Taux d'occupation des salles</h5>
-                            <div id="reservationpieChart"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Statistiques : Répartition des réservations par salle -->
-                <div class="col-lg-4">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Répartition des réservations par salle</h5>
-                            <canvas id="reservationsChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        @endif
-
-        <!-- Agenda des réservations (visible pour tous) -->
+    @if(Auth::check() && Auth::user()->hasRole('administrateur'))
+         @include('partials.admin-dashboard')
+    @elseif(Auth::check() && Auth::user()->hasRole('gestionnaire'))
+        @include('partials.gestionnaire-dashboard')
+    @elseif(Auth::check() && Auth::user()->hasRole('utilisateur'))
+        @include('partials.utilisateur-dashboard')
+    @else
+    <section>
         <div class="row">
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">Agenda des réservations</h5>
+                        <h5 class="card-title"> Agenda des réservations </h5>
                         <div id="calendar"></div>
+                        <div class="row mt-3">
+                                <div class="col-12">
+                                    <div class="d-flex flex-wrap justify-content-center gap-3 align-items-center">
+                                        <span class="d-flex align-items-center">
+                                            <span style="display:inline-block;width:18px;height:18px;background:#e8f5e9;border-left:4px solid #2e7d32;border-radius:4px;margin-right:6px;"></span>
+                                            Terminé
+                                        </span>
+                                        <span class="d-flex align-items-center">
+                                            <span style="display:inline-block;width:18px;height:18px;background:#ffebee;border-left:4px solid #c62828;border-radius:4px;margin-right:6px;"></span>
+                                            Annulé
+                                        </span>
+                                        <span class="d-flex align-items-center">
+                                            <span style="display:inline-block;width:18px;height:18px;background:#e3f2fd;border-left:4px solid #3640f5;border-radius:4px;margin-right:6px;"></span>
+                                            Validé
+                                        </span>
+                                        <span class="d-flex align-items-center">
+                                            <span style="display:inline-block;width:18px;height:18px;background:#fffde7;border-left:4px solid #ffb300;border-radius:4px;margin-right:6px;"></span>
+                                            En attente
+                                        </span>
+                                    </div>
+                                </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
         </div>
-
-         @if (Auth::check() && in_array(Auth::user()->getRoleNames()->first(), ['admin', 'gestionnaire']))
-            <!-- Répartition par direction (visible pour admin, gestionnaire et utilisateur) -->
-            <div class="row mt-3">
-                <div class="col-6">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Répartition des réservations par direction</h5>
-                            <div class="activity">
-                                @foreach ($topDirections as $direction)
-                                    <div class="activity-item d-flex">
-                                        <i class='bi bi-circle-fill activity-badge text-success align-self-start'></i>
-                                        <div class="activity-content">
-                                            <a class="fw-bold text-dark">{{ $direction->direction }}</a> - {{ $direction->total }} réservations
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                 <!-- Nouvelle section : Salles disponibles du jour -->
-                <div class="col-6">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h5 class="card-title">Disponibilité des salles aujourd'hui ({{ now()->format('d/m/Y') }})</h5>
-                                    <div class="table-responsive">
-                                        <table id="salles-disponibilite-table" class="table table-striped table-hover">
-                                            <thead>
-                                                <tr>
-                                                    <th>Statut</th>
-                                                    <th>Salle</th>
-                                                    <th>Disponibilité</th>
-                                                    <th>Créneau horaire</th>
-                                                    <th>Actions</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach($salles as $salle)
-                                                    @php
-                                                        $reservationEnCours = $salle->reservations->first();
-                                                        $estDisponible = is_null($reservationEnCours);
-                                                    @endphp
-                                                    <tr>
-                                                        <td>
-                                                            <i class='bi bi-circle-fill {{ $estDisponible ? 'text-success' : 'text-danger' }}'></i>
-                                                        </td>
-                                                        <td class="fw-bold">{{ $salle->nom }}</td>
-                                                        <td>
-                                                            @if($estDisponible)
-                                                                <span class="badge bg-success">Disponible</span>
-                                                            @else
-                                                                <span class="badge bg-danger">Réservée</span>
-                                                            @endif
-                                                        </td>
-                                                        <td>
-                                                            @if(!$estDisponible)
-                                                                <small class="text-muted">
-                                                                    De {{ \Carbon\Carbon::parse($reservationEnCours->start_time)->format('H:i') }}
-                                                                    à {{ \Carbon\Carbon::parse($reservationEnCours->end_time)->format('H:i') }}
-                                                                </small>
-                                                            @endif
-                                                        </td>
-                                                        <td>
-                                                            @if($estDisponible)
-                                                                <a href="{{ route('reservations.create', ['salle_id' => $salle->id]) }}"
-                                                                class="btn btn-sm btn-outline-primary">
-                                                                    <i class="bi bi-calendar-plus"></i> Réserver
-                                                                </a>
-                                                            @else
-                                                                <button class="btn btn-sm btn-outline-secondary" disabled>
-                                                                    <i class="bi bi-lock"></i> Occupée
-                                                                </button>
-                                                            @endif
-                                                        </td>
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-
-                            @push('scripts')
-                            <script>
-                                $(document).ready(function() {
-                                    $('#salles-disponibilite-table').DataTable({
-                                        responsive: true,
-                                        columnDefs: [
-                                            { orderable: false, targets: [0, 4] }, // Désactiver le tri sur les colonnes Statut et Actions
-                                            { searchable: false, targets: [0, 4] } // Désactiver la recherche sur ces colonnes
-                                        ],
-                                        language: {
-                                            url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/fr-FR.json' // Localisation française
-                                        }
-                                    });
-                                });
-                            </script>
-                            @endpush
-                </div>
-
-            </div>
-        @endif
     </section>
+    @endif
+    <!-- Modal pour afficher les détails de la réservation -->
+    <div class="modal fade" id="reservationModal" tabindex="-1" aria-labelledby="reservationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="reservationModalLabel">
+                        <i class="bi bi-calendar-event"></i>
+                        Détails réservation pour : <strong><span id="modalSalle"></span></strong>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p></p>
+                    <p><strong>Direction :</strong> <span id="modalDirection"></span></p>
+                    <p><strong>Motif :</strong> <span id="modalMotif"></span></p>
+                    <p><strong>Date de début :</strong> <span id="modalStartTime"></span></p>
+                    <p><strong>Date de fin :</strong> <span id="modalEndTime"></span></p>
+                    <p><strong>Statut :</strong> <span id="modalStatus"></span></p>
+                    <p><strong>Priorité :</strong> <span id="modalPriority"></span></p>
+                </div>
+                <div class="modal-footer">
+                    <a href="#" id="modalEditLink" class="btn btn-primary">Modifier</a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </main>
 
-<!-- Script pour le rafraîchissement automatique -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Rafraîchir toutes les 30 secondes
     setInterval(function() {
         fetch(window.location.href)
             .then(response => response.text())
             .then(html => {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                const newContent = doc.querySelector('.table-responsive').innerHTML;
-                document.querySelector('.table-responsive').innerHTML = newContent;
+                let parser = new DOMParser();
+                let doc = parser.parseFromString(html, 'text/html');
+                let newContentEl = doc.querySelector('.table-responsive');
+                let currentContentEl = document.querySelector('.table-responsive');
+                if (newContentEl && currentContentEl) {
+                    currentContentEl.innerHTML = newContentEl.innerHTML;
+                }
             });
     }, 30000);
 });
-</script>
 
-<!-- Scripts pour les graphiques et le calendrier -->
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        @if (Auth::check() && in_array(Auth::user()->getRoleNames()->first(), ['admin', 'gestionnaire']))
-            // Graphique en camembert (uniquement pour admin et gestionnaire)
-            new ApexCharts(document.querySelector("#reservationpieChart"), {
-                series: @json($data_pourcentage_salle),
-                chart: { type: 'pie', height: 350 },
-                labels: @json($labels_reserv_salle)
-            }).render();
+document.addEventListener('DOMContentLoaded', function () {
+    // Définir userRole et userId côté JS depuis Blade
+const userRole = @json(Auth::check() ? Auth::user()->getRoleNames()->first() : null);
+const userId = @json(Auth::check() ? Auth::user()->id : null);
 
-            // Graphique en barres (uniquement pour admin et gestionnaire)
-            const ctx = document.getElementById('reservationsChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: @json($labels_reserv_salle),
-                    datasets: [{
-                        label: 'Nombre de réservations',
-                        data: @json($data_reserv_salle),
-                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: { y: { beginAtZero: true } },
-                    plugins: { legend: { position: 'top' } }
-                }
-            });
-        @endif
 
-        // Calendrier (visible pour tous)
-        const calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
-            initialView: 'dayGridMonth',
-            events: @json($reservationsForCalendar),
-            locale: 'fr',
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay'
-            },
-            eventClick: function(info) {
-                // window.location.href = "{{ route('reservations.edit', '') }}".replace('/edit', `${info.event.id}/edit`);
-                window.location.href = "{{ route('reservations.show', '') }}/" + info.event.id;
+    let calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
+      //  initialView: 'dayGridMonth',
+        initialView: window.innerWidth < 768 ? 'listWeek' : 'dayGridMonth', // Vue liste sur mobile
+        height: 'auto',
+        contentHeight: 'auto',
+        aspectRatio: 1.5,
+        firstDay: 1,
+       // themeSystem: 'bootstrap',
+        windowResize: function(view) {
+            if(window.innerWidth < 768) {
+                calendar.changeView('listWeek');
+            } else {
+                calendar.changeView('dayGridMonth');
             }
-        });
-        calendar.render();
-    });
+        },
+        events: @json($reservationsForCalendar),
+        locale: 'fr',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        buttonText: {
+            today: 'Aujourd\'hui',
+            month: 'Mois',
+            week: 'Semaine',
+            day: 'Jour'
+        },
 
-    document.addEventListener('DOMContentLoaded', function() {
-    // Rafraîchir toutes les 30 secondes
-    setInterval(function() {
-        fetch(window.location.href)
-            .then(response => response.text())
-            .then(html => {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                const newContent = doc.getElementById('salles-disponibilite').innerHTML;
-                document.getElementById('salles-disponibilite').innerHTML = newContent;
-            });
-    }, 30000); // 30 secondes
-});
+        eventDidMount: function(info) {
+            let event = info.event;
+            let element = info.el;
+
+            // Ajouter une classe CSS en fonction du statut de l'événement
+            if (event.extendedProps.status === 'terminé') {
+                element.classList.add('disponible');
+            } else if (event.extendedProps.status === 'annulé') {
+                element.classList.add('indisponible');
+            } else if (event.extendedProps.status === 'validé') {
+                element.classList.add('validee');
+            } else if (event.extendedProps.status === 'en attente') {
+                element.classList.add('attente');
+            } else {
+                element.classList.add('autre');
+            }
+        },
+
+        eventClick: function(info) {
+            let event = info.event;
+
+            // Remplir les champs du modal avec les données de l'événement
+            document.getElementById('modalSalle').textContent = event.extendedProps.salle || 'Non spécifié';
+            document.getElementById('modalDirection').textContent = event.extendedProps.direction || 'Non spécifié';
+            document.getElementById('modalMotif').textContent = event.extendedProps.motif || 'Non spécifié';
+            document.getElementById('modalStartTime').textContent = event.start.toLocaleString();
+            document.getElementById('modalEndTime').textContent = event.end ? event.end.toLocaleString() : 'Non spécifié';
+            document.getElementById('modalStatus').textContent = event.extendedProps.status || 'Non spécifié';
+            document.getElementById('modalPriority').textContent = event.extendedProps.priority || 'Non spécifié';
+
+            // Ajouter un lien pour modifier la réservation
+            let editLink = document.getElementById('modalEditLink');
+            editLink.href = `/reservations/${event.id}/edit`;
+
+            // Désactiver le bouton "Modifier" si nécessaire
+        //    let userId = event.extendedProps.user_id || null;
+            let creatorId = event.extendedProps.creator_id || null;
+            let status = event.extendedProps.status ? event.extendedProps.status.toLowerCase() : '';
+
+            if (['terminé', 'annulé', 'archivé'].includes(status) ||
+                (!['administrateur', 'gestionnaire'].includes(userRole) && userId !== creatorId)) {
+                editLink.classList.add('disabled'); // Ajouter la classe "disabled"
+                editLink.setAttribute('aria-disabled', 'true'); // Accessibilité
+                editLink.style.pointerEvents = 'none'; // Empêcher les clics
+            } else {
+                editLink.classList.remove('disabled'); // Supprimer la classe "disabled"
+                editLink.removeAttribute('aria-disabled'); // Supprimer l'attribut d'accessibilité
+                editLink.style.pointerEvents = 'auto'; // Réactiver les clics
+            }
+
+            // Afficher le modal
+            let reservationModalEl = document.getElementById('reservationModal');
+            let reservationModal = new bootstrap.Modal(reservationModalEl);
+            reservationModal.show();
+
+            // Nettoyer les anciens écouteurs pour éviter les doublons
+            reservationModalEl.onclick = null;
+            reservationModalEl.addEventListener('hide.bs.modal', function () {
+                document.activeElement.blur();
+            }, { once: true });
+
+            // Fermer le modal lorsque l'utilisateur clique en dehors de celui-ci
+            reservationModalEl.onclick = function(event) {
+                if (event.target === reservationModalEl) {
+                    reservationModal.hide();
+                }
+            };
+                    //});
+
+        },
+
+        dayCellDidMount: function(info) {
+            const events = info.view.calendar.getEvents().filter(event =>
+                event.startStr.startsWith(info.date.toISOString().slice(0, 10))
+            );
+            if (events.length > 0) {
+                let badge = document.createElement('span');
+                badge.className = 'badge bg-primary ms-1';
+                badge.style.fontSize = '0.7em';
+                badge.textContent = events.length;
+                info.el.querySelector('.fc-daygrid-day-number')?.appendChild(badge);
+            }
+        },
+        dateClick: function(info) {
+            // Rediriger vers la page de création de réservation
+            window.location.href = '/reservations/create?date=' + info.dateStr;
+        },
+
+
+    });
+    calendar.render();
+
+ });
+
 </script>
 
 @endsection

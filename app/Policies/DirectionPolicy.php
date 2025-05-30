@@ -13,7 +13,7 @@ class DirectionPolicy
      */
     public function view(User $user, Direction $direction)
     {
-        return $user->hasRole('admin') || $user->hasRole('gestionnaire');
+        return $user->hasRole('administrateur') || $user->hasRole('gestionnaire');
     }
 
     /**
@@ -21,7 +21,7 @@ class DirectionPolicy
      */
     public function create(User $user)
     {
-        return $user->hasRole('admin') || $user->hasRole('gestionnaire');
+        return $user->hasRole('administrateur') || $user->hasRole('gestionnaire');
     }
 
     /**
@@ -29,7 +29,7 @@ class DirectionPolicy
      */
     public function update(User $user, Direction $direction)
     {
-        return $user->hasRole('admin') || $user->hasRole('gestionnaire');
+        return $user->hasRole('administrateur') || $user->hasRole('gestionnaire');
     }
 
     /**
@@ -37,6 +37,6 @@ class DirectionPolicy
      */
     public function delete(User $user, Direction $direction)
     {
-        return $user->hasRole('admin');
+        return $user->hasRole('administrateur');
     }
 }

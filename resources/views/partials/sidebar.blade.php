@@ -14,7 +14,7 @@
             </li>
 
             <!-- Salles (masqué pour le rôle "utilisateur") -->
-            @if (!auth()->user()->hasRole('utilisateur'))
+            @if (!auth()->user()->hasRole('utilisateur') && !auth()->user()->hasRole('gestionnaire'))
                 <li class="nav-item {{ request()->routeIs('salles.*') ? 'active' : '' }}">
                     <a class="nav-link {{ request()->routeIs('salles.*') ? '' : 'collapsed' }}" href="{{ route('salles.index') }}">
                         <i class="bi bi-grid"></i>
@@ -32,7 +32,7 @@
             </li>
 
             <!-- Directions (masqué pour le rôle "utilisateur") -->
-            @if (!auth()->user()->hasRole('utilisateur'))
+            @if (!auth()->user()->hasRole('utilisateur') && !auth()->user()->hasRole('gestionnaire'))
                 <li class="nav-item {{ request()->routeIs('directions.*') ? 'active' : '' }}">
                     <a class="nav-link {{ request()->routeIs('directions.*') ? '' : 'collapsed' }}" href="{{ route('directions.index') }}">
                         <i class="bi bi-building"></i>

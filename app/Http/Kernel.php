@@ -69,4 +69,9 @@ class Kernel extends HttpKernel
        'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
         'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class, */
     ];
+
+    protected function schedule(Schedule $schedule)
+{
+    $schedule->command('reservations:update-status')->daily();
+}
 }

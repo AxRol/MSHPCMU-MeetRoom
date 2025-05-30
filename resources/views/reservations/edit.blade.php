@@ -56,17 +56,32 @@
                         @if($errors->has('motif'))  <div class="text-danger mt-2">{{ $errors->first('motif') }}</div>  @endif
                     </div>
 
+                    <!-- Champ pour la priorité -->
+                    @if (Auth::check() && in_array(Auth::user()->getRoleNames()->first(), ['administrateur', 'gestionnaire']))
+                    <div class="mb-3">
+                        <label for="priority" class="form-label">Priorité</label>
+                        <input type="hidden" name="priority" value="0"> <!-- Important pour quand la case n'est pas cochée -->
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="priority" id="priority" value="1" {{ $reservation->priority ? 'checked' : '' }}>
+                            <label class="form-check-label" for="priority">Réservation prioritaire </label>
+                        </div>
+                        <small class="text-muted">Les réservations prioritaires annuleront automatiquement les autres réservations en conflit</small>
+                    </div>
+                    @endif
+
                     <!-- Champ pour la date et heure de début -->
                     <div class="mb-3">
                         <label for="start_time" class="form-label">Date et heure de début</label>
-                        <input type="datetime-local" name="start_time" id="start_time" class="form-control" value="{{ old('start_time', $reservation->start_time) }}" required />
+                        <input type="datetime-local" name="start_time" id="start_time" class="form-control"
+                               value="{{ old('start_time', $reservation->start_time ? $reservation->start_time->format('Y-m-d\TH:i') : '') }}" required />
                         @if($errors->has('start_time')) <div class="text-danger mt-2">{{ $errors->first('start_time') }}</div>  @endif
                     </div>
 
                     <!-- Champ pour la date et heure de fin -->
                     <div class="mb-3">
                         <label for="end_time" class="form-label">Date et heure de fin</label>
-                        <input type="datetime-local" name="end_time" id="end_time" class="form-control" value="{{ old('end_time', $reservation->end_time) }}" required />
+                        <input type="datetime-local" name="end_time" id="end_time" class="form-control"
+                               value="{{ old('end_time', $reservation->end_time ? $reservation->end_time->format('Y-m-d\TH:i') : '') }}" required />
                         @if($errors->has('end_time')) <div class="text-danger mt-2">{{ $errors->first('end_time') }}</div> @endif
                     </div>
 
@@ -84,6 +99,6 @@
       </div>
     </section>
 
-  </main>
+</main>
 
 @endsection

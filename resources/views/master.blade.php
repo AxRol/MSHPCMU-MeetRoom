@@ -50,7 +50,7 @@
     <script src="{{asset('js/jquery.dataTables.min.js')}}"></script>
 
     <!-- Calendrier  -->
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+<!-- <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script> -->
 <script src="{{asset('js/fullcalendar@5.11.3/main.min.js')}}"></script>
 <script src="{{asset('js/jquery.dataTables.responsive.min.js')}}"></script>
 
@@ -73,6 +73,26 @@
 
         .status-en-attente .status-bubble {
             background-color: #3c44f4; /* Jaune */
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main, #main {
+            flex: 1 0 auto;
+        }
+
+        footer.footer {
+            flex-shrink: 0;
         }
     </style>
 
@@ -102,8 +122,9 @@
   <!-- End #main -->
 
   <!-- ======= Footer ======= -->
-<!-- @include('partials.footer') -->
+    @include('partials.footer')
   <!-- End Footer -->
+
 
 
   <!-- Vendor JS Files -->

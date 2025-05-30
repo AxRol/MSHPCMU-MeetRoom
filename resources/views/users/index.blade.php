@@ -54,8 +54,9 @@
                     <tr>
                         <th class="px-4 py-2">Nom</th>
                         <th class="px-4 py-2">Email</th>
-                        <th class="px-4 py-2">Rôles</th>
-                        <th class="px-4 py-2">Permissions</th>
+                        <th class="px-4 py-2">Rôle(s)</th>
+                        <th class="px-4 py-2">Permission(s)</th>
+                        <th class="px-4 py-2">Salle(s) assignée(s)</th>
                         <th class="px-4 py-2">Actions</th>
                     </tr>
                 </thead>
@@ -66,6 +67,7 @@
                             <td class="border px-4 py-2">{{ $user->email }}</td>
                             <td class="border px-4 py-2">{{ $user->getRoleNames()->implode(', ') }}</td>
                             <td class="border px-4 py-2">{{ $user->getAllPermissions()->pluck('name')->implode(', ') }}</td>
+                            <td class="border px-4 py-2">{{ $user->salles && $user->salles->count() > 0 ? $user->salles->pluck('nom')->implode(', ') : '' }}</td>
                             <td class="border px-4 py-2">
                                 <a href="{{ route('users.edit', $user) }}" class="btn btn-outline-success"><i class="bi bi-pencil-square"></i></a>
                                 <form id="delete-form-{{ $user->id }}" action="{{ route('users.destroy', $user->id) }}" method="POST" style="display:inline;">
