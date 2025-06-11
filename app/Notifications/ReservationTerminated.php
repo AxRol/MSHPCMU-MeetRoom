@@ -28,10 +28,11 @@ class ReservationTerminated extends Notification
     {
         return (new MailMessage)
                     ->subject('Votre réservation a été archivée')
+                    ->greeting('Bonjour ' . $notifiable->name . ',')
                     ->line('Votre réservation pour la salle ' . $this->reservation->salle->nom . ' a été marquée comme terminée et archivée.')
                     ->line('Date: ' . $this->reservation->start_time . ' - ' . $this->reservation->end_time)
-                    ->action('Voir les réservations', url('/reservations'))
-                    ->line('Merci d\'utiliser notre service!');
+                  //  ->action('Voir les réservations', url('/reservations'))
+                    ->line('Merci d\'utiliser notre application!');
     }
 
 }
